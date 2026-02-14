@@ -1,66 +1,158 @@
-# user-management-app
-applicazione full-stack PHP backend e React frontend
----
+# User Management App (React + PHP + MySQL + Docker)
 
-## 📌 Descrizione
+## Descrizione
+Applicazione web per gestire una lista di utenti con:
+- Nome
+- Email
+- Data di nascita
 
-La **User Management App** consente di visualizzare e aggiungere utenti tramite una semplice interfaccia web.  
-Il backend espone una REST API in PHP, mentre il frontend React comunica con essa per la gestione dei dati.
-
-I dati degli utenti vengono salvati in un file JSON.
-
----
-
-## 🛠 Tecnologie Utilizzate
-
-- **PHP** – Backend e API REST
-- **React + Vite** – Frontend
-- **JSON** – Persistenza dei dati
+**Tecnologie utilizzate**:
+- Frontend: React (Vite)
+- Backend: PHP 8.2 con PDO e MySQL
+- Database: MySQL
+- Containerizzazione: Docker & Docker Compose
 
 ---
 
-## 📁 Struttura del Progetto
-user-management-app/
-├── backend/
-│ ├── index.php
-│ └── users.json
-├── frontend/
-│ └── src/
-│ ├── App.jsx
-│ └── main.jsx
-└── README.md
+## Struttura progetto
 
+```
+
+user-app/
+│
+├── backend/        # PHP backend
+│   ├── Dockerfile
+│   ├── index.php
+│   └── config/
+│
+├── frontend/       # React frontend
+│   ├── Dockerfile
+│   ├── package.json
+│   └── src/
+│
+└── docker-compose.yml
+
+````
 
 ---
 
-## ⚙️ Configurazione Backend (PHP)
+## Prerequisiti
 
-1. Apri un terminale nella cartella `backend`
-2. Avvia il server PHP:
+- Docker Desktop installato
+- Port 5173 e 8000 libere
+
+> Non serve installare PHP o MySQL sul PC: tutto è containerizzato.
+
+---
+
+## Avvio del progetto
+
+1️⃣ Dalla root del progetto (`user-app`) avvia Docker Compose:
 
 ```bash
-php -S localhost:8000
+docker compose up --build
+````
 
-Endpoint disponibili
+* Questo avvia **3 container**:
 
-GET /index.php?action=list → Restituisce la lista degli utenti
+  * `react_frontend` → porta 5173
+  * `php_backend` → porta 8000
+  * `mysql_db` → porta 3306
 
-POST /index.php?action=add → Aggiunge un nuovo utente
+2️⃣ Apri il browser:
 
-⚙️ Configurazione Frontend (React)
+* React: [http://localhost:5173](http://localhost:5173)
+* PHP backend (test): [http://localhost:8000/index.php?action=list](http://localhost:8000/index.php?action=list)
 
-Apri un terminale nella cartella frontend
+---
 
-Installa le dipendenze:
+## Configurazione database
 
-npm install
+MySQL già incluso in Docker.
 
+* Database: `user_management`
+* Utente root: `root`
+* Password: `root`
+* Porta: `3306`
 
-Avvia il server di sviluppo:
+### Creazione tabella utenti
 
-npm run dev
+All’interno del container MySQL:
 
+```bash
+docker exec -it mysql_db mysql -u root -p
+# password: root
 
-Il frontend sarà disponibile all’indirizzo:
+USE user_management;
 
-http://localhost:5173
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(150) NOT NULL UNIQUE,
+    birthdate DATE NOT NULL
+);
+```
+
+---
+
+## Frontend
+
+* Tutte le richieste al backend devono usare:
+
+```js
+fetch('http://localhost:8000/index.php?action=list')
+```
+
+* Per aggiungere un utente: `action=add` (POST JSON)
+
+* In React si consiglia usare `.env`:
+
+```
+VITE_API_URL=http://localhost:8000
+```
+
+E poi in codice:
+
+```js
+const API = import.meta.env.VITE_API_URL;
+fetch(`${API}/index.php?action=list`);
+```
+
+---
+
+## Backend
+
+* PHP 8.2 con PDO e MySQL
+* File principale: `index.php`
+* Database configurato in `config/Database.php`
+* CORS già abilitato per il frontend (porta 5173)
+
+---
+
+## Comandi utili Docker
+
+* Avvia tutto:
+
+```bash
+docker compose up --build
+```
+
+* Stop:
+
+```bash
+docker compose down
+```
+
+* Accedere al container PHP:
+
+```bash
+docker exec -it php_backend bash
+```
+
+* Accedere al container MySQL:
+
+```bash
+docker exec -it mysql_db mysql -u root -p
+```
+
+---
