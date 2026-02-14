@@ -1,0 +1,13 @@
+se da php 
+php -S localhost:8000
+
+se da xampp
+C:\xampp\php\php.exe -S localhost:8000   
+
+
+
+React (localhost:5173)
+        ↓
+PHP built-in server (localhost:8000)
+        ↓
+MySQL (localhost:3306)

@@ -31,6 +31,8 @@ function App() {
   //Serve per caricare la lista utenti dal backend.
   function loadUsers() {
     fetch("http://localhost:8000/index.php?action=list")//Chiama il backend PHP (GET)
+    //fetch('http://localhost/backend/index.php?action=list') //________________->’URL punti al PHP che gira su XAMPP:
+    //fetch('http://php:8000/index.php?action=list')
       .then((res) => res.json()) //Trasforma la risposta in JSON
       .then((data) => {
         setUsers(data.data);//Aggiorna users, React aggiorna automaticamente la pagina
@@ -43,6 +45,8 @@ function App() {
 
     //chiamata POST
     fetch("http://localhost:8000/index.php?action=add", {
+    //fetch('http://localhost/backend/index.php?action=add', {//________________->’URL punti al PHP che gira su XAMPP:
+    //fetch('http://php:8000/index.php?action=add', {
       method: "POST",
       headers: {
         "Content-Type": "application/json", //Diciamo a PHP:“Ti mando JSON”
