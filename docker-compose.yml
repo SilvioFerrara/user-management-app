@@ -1,39 +1,101 @@
+# Versione del formato docker-compose
+# 3.8 è compatibile con Docker recenti
 version: '3.8'
 
+# =========================
+#  DEFINIZIONE SERVIZI
+# =========================
 services:
 
+  # -------------------------
+  #  SERVIZIO BACKEND PHP
+  # -------------------------
   php:
+    # Costruisce l'immagine usando il Dockerfile nella cartella ./backend
     build: ./backend
+
+    # Nome personalizzato del container
     container_name: php_backend
+
+    # Mappatura porte:
+    # porta_host:porta_container
+    # Accedendo a localhost:8000 si entra nel container
     ports:
       - "8000:8000"
+
+    # Monta la cartella locale ./backend dentro /app nel container
+    # Permette hot-reload (modifiche immediate senza rebuild)
     volumes:
       - ./backend:/app
+
+    # Il servizio mysql deve essere avviato prima di php
     depends_on:
       - mysql
 
+
+  # -------------------------
+  #  SERVIZIO DATABASE MYSQL
+  # -------------------------
   mysql:
+    # Usa immagine ufficiale MySQL 8.0
     image: mysql:8.0
+
+    # Nome personalizzato del container
     container_name: mysql_db
+
+    # Riavvia automaticamente il container se si ferma
     restart: always
+
+    # Variabili ambiente per configurare MySQL
     environment:
+      # Password dell'utente root
       MYSQL_ROOT_PASSWORD: root
+
+      # Database creato automaticamente all'avvio
       MYSQL_DATABASE: user_management
+
+    # Espone la porta 3306
+    # Permette di connettersi da strumenti esterni (es. MySQL Workbench)
     ports:
       - "3306:3306"
+
+    # Volume persistente per salvare i dati del database
+    # I dati non vengono persi quando il container viene eliminato
     volumes:
       - db_data:/var/lib/mysql
 
+
+  # -------------------------
+  #  SERVIZIO FRONTEND REACT
+  # -------------------------
   react:
+    # Costruisce l'immagine usando il Dockerfile nella cartella ./frontend
     build: ./frontend
+
+    # Nome personalizzato del container
     container_name: react_frontend
+
+    # Mappatura porta per Vite (default 5173)
     ports:
       - "5173:5173"
+
+    # Monta la cartella frontend nel container
+    # Permette sviluppo con hot reload
     volumes:
       - ./frontend:/app
+
+      # Evita conflitti con node_modules locale
       - /app/node_modules
+
+    # React parte solo dopo che il backend PHP è avviato
     depends_on:
       - php
 
+
+# =========================
+#  DEFINIZIONE VOLUMI
+# =========================
+
+# Volume nominato per la persistenza del database
 volumes:
   db_data:

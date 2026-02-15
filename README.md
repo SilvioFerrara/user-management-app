@@ -23,7 +23,9 @@ user-app/
 ├── backend/        # PHP backend
 │   ├── Dockerfile
 │   ├── index.php
-│   └── config/
+│   ├── config/ database
+│   ├── models/ User
+│   └── repositories/ UserRepository
 │
 ├── frontend/       # React frontend
 │   ├── Dockerfile
