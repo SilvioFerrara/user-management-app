@@ -54,7 +54,7 @@ $action = $_GET['action'] ?? '';
 
 /*
  * =========================
- *  ACTION: LISTA UTENTI
+ *  ACTION: LISTA UTENTI (GET)
  * =========================
  */
 
@@ -72,7 +72,7 @@ if ($action === 'list') {
 
 /*
  * =========================
- *  ACTION: AGGIUNGI UTENTE
+ *  ACTION: AGGIUNGI UTENTE (POST)
  * =========================
  */
 
@@ -153,4 +153,68 @@ elseif ($action === 'add') {
             "error" => "Email già esistente"
         ]);
     }
+}
+
+/*
+ * =========================
+ *  ACTION: ELIMINA UTENTE (DELETE)
+ * =========================
+ */
+
+elseif ($action === 'delete' && $_SERVER['REQUEST_METHOD'] === 'DELETE') {
+
+    // Recupera ID dall'URL (?action=delete&id=1)
+    $id = $_GET['id'] ?? null;
+
+    // Verifica presenza ID
+    if (!$id) {
+        echo json_encode([
+            "success" => false,
+            "error" => "ID mancante"
+        ]);
+        exit;
+    }
+
+    try {
+        // Conversione a intero per sicurezza
+        $repo->delete((int)$id);
+
+        echo json_encode([
+            "success" => true
+        ]);
+
+    } catch (PDOException $e) {
+
+        echo json_encode([
+            "success" => false,
+            "error" => "Errore durante eliminazione"
+        ]);
+    }
+}
+/*
+ * =========================
+ *  ACTION: MODIFICA UTENTE (PUT/POST)
+ * =========================
+ */
+elseif ($action === 'update') {
+
+    // Lettura body JSON
+    $input = json_decode(file_get_contents("php://input"), true);
+
+    // Verifica presenza dati e ID
+    if (!$input || !isset($input['id'])) {
+        echo json_encode(["success" => false, "error" => "Dati non validi"]);
+        exit;
+    }
+
+    // Conversione ID in intero
+    $id = intval($input['id']);
+
+    // Creazione nuovo oggetto User con dati aggiornati
+    $user = new User($input['name'], $input['email'], $input['birthdate']);
+    
+    // Aggiornamento tramite repository
+    $repo->update($id, $user);
+
+    echo json_encode(["success" => true]);
 }

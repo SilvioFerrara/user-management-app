@@ -30,7 +30,8 @@ class UserRepository {
         // Esegue una query SQL diretta (senza parametri)
         // Seleziona solo i campi necessari dalla tabella users
         $stmt = $this->db->query(
-            "SELECT name, email, birthdate FROM users"
+            //"SELECT name, email, birthdate FROM users" 
+            "SELECT id, name, email, birthdate FROM users" //id serve per delete e update
         );
 
         // fetchAll() recupera tutti i record come array associativi
@@ -64,4 +65,59 @@ class UserRepository {
             ":birthdate" => $user->getBirthdate()  // Recupera la data di nascita
         ]);
     }
+    /*
+    * Elimina un utente tramite ID
+    */
+    public function delete(int $id): void {
+
+        // Prepara la query SQL con parametro nominato
+        // L'uso dei parametri previene SQL Injection
+        $stmt = $this->db->prepare(
+            "DELETE FROM users WHERE id = :id"
+        );
+
+        // Esegue la query sostituendo :id con il valore reale
+        $stmt->execute([
+            ":id" => $id
+        ]);
+        // Nota:
+        // Se l'ID non esiste, la query non genera errore
+        // ma semplicemente non elimina nessuna riga.
+    }
+
+    /*
+    * Aggiorna un utente esistente
+    */
+    public function update(int $id, User $user): void {
+        /*
+         * Query SQL parametrizzata:
+         * - Aggiorna i campi name, email, birthdate
+         * - Solo per il record con l'ID specificato
+         */
+        $sql = "UPDATE users
+                SET name = :name,
+                    email = :email,
+                    birthdate = :birthdate
+                WHERE id = :id";
+
+        // Prepara la query
+        $stmt = $this->db->prepare($sql);
+        
+        // Esegue la query associando:
+        // - i valori presi dall'oggetto User
+        // - l'ID del record da aggiornare
+        $stmt->execute([
+            ":name" => $user->getName(),
+            ":email" => $user->getEmail(),
+            ":birthdate" => $user->getBirthdate(),
+            ":id" => $id
+        ]);
+        // Nota:
+        // Se l'ID non esiste, nessuna riga verrà aggiornata.
+        // Per verificarlo si potrebbe controllare:
+        // $stmt->rowCount();
+    }
+
+
+
 }

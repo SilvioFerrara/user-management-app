@@ -39,6 +39,12 @@ function App() {
   // Stato per eventuali messaggi di errore
   const [error, setError] = useState("");
 
+  // Stato che identifica se siamo in modalità modifica
+  // null → modalità inserimento
+  // id   → modalità update
+  const [editingId, setEditingId] = useState(null);
+
+
 
   /*
    =========================
@@ -73,59 +79,98 @@ function App() {
       });
   }
 
+/*
+   =====================================================
+    FUNZIONE: HANDLE SUBMIT
+   =====================================================
+
+   Gestisce sia:
+   - Creazione nuovo utente (POST)
+   - Modifica utente esistente (PUT)
+
+   La logica è dinamica in base a editingId.
+  */
+function handleSubmit(e) {
+  
+  // Previene il comportamento di default del form (refresh pagina)
+  e.preventDefault();
+
+  // Se editingId esiste → update
+    // Altrimenti → add
+  const action = editingId ? "update" : "add";        // check se update o add
+  const method = editingId ? "PUT" : "POST";          // PUT per update, POST per add
+
+  fetch(`http://localhost:8000/index.php?action=${action}`, {
+    method: method,
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      id: editingId,       // serve solo per update
+      name,
+      email,
+      birthdate,
+    }),
+  })
+    .then((res) => res.json())
+    .then((data) => {
+      if (!data.success) {
+        // Mostra errore proveniente dal backend
+        setError(data.error);
+      } else {
+        // Reset stato errori
+        setError("");
+
+        // Pulizia form
+        setName("");
+        setEmail("");
+        setBirthdate("");
+
+        // Uscita modalità modifica
+        setEditingId(null);  // 🔥 reset modalità modifica
+
+        // Aggiorna lista utenti
+        loadUsers();         // ricarica lista utenti
+      }
+    });
+}
+  
 
   /*
-   =========================
-    FUNZIONE: HANDLE SUBMIT
-   =========================
+   =====================================================
+    FUNZIONE: DELETE USER
+   =====================================================
 
-   Gestisce l'invio del form (POST verso il backend)
+   Effettua una richiesta DELETE al backend
+   passando l'id come query parameter.
   */
-  function handleSubmit(e) {
+  function deleteUser(id) {
 
-    // Previene il refresh automatico della pagina
-    e.preventDefault();
+  fetch(`http://localhost:8000/index.php?action=delete&id=${id}`, {
+    method: "DELETE",
+  })
+    .then((res) => res.json())
+    .then(() => {
+      // Ricarica lista utenti dopo eliminazione
+      loadUsers();
+    });
+}
 
-    // Chiamata POST al backend
-    fetch("http://localhost:8000/index.php?action=add", {
-      method: "POST",
+/*
+   =====================================================
+    FUNZIONE: START EDIT
+   =====================================================
 
-      // Header per indicare che stiamo inviando JSON
-      headers: {
-        "Content-Type": "application/json",
-      },
-
-      // Converte i dati del form in JSON
-      body: JSON.stringify({
-        name,
-        email,
-        birthdate,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-
-        // Se il backend restituisce errore
-        if (!data.success) {
-
-          // Mostra messaggio di errore
-          setError(data.error);
-
-        } else {
-
-          // Reset messaggio errore
-          setError("");
-
-          // Pulizia del form
-          setName("");
-          setEmail("");
-          setBirthdate("");
-
-          // Ricarica lista utenti per mostrare il nuovo inserimento
-          loadUsers();
-        }
-      });
-  }
+   Attiva la modalità modifica:
+   - Imposta editingId
+   - Popola il form con i dati dell’utente selezionato
+  */
+function startEdit(user) {
+  setEditingId(user.id);     // imposta l'id dell'utente in modifica
+  setName(user.name);        // popola il form
+  setEmail(user.email);
+  setBirthdate(user.birthdate);
+}
 
 
   /*
@@ -177,16 +222,22 @@ function App() {
 
       <h2>Lista utenti</h2>
 
-      {/* Render dinamico lista utenti */}
       <ul>
-        {users.map((user, index) => (
-
-          // key serve a React per identificare elementi della lista
-          <li key={index}>
+        {users.map((user) => (
+          <li key={user.id}>
             {user.name} – {user.email} – {user.birthdate}
+
+            <button onClick={() => startEdit(user)}>
+              Modifica
+            </button>
+
+            <button onClick={() => deleteUser(user.id)}>
+              Elimina
+            </button>
           </li>
         ))}
       </ul>
+
     </div>
   );
 }
