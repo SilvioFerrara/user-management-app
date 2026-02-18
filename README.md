@@ -6,11 +6,27 @@ Applicazione web per gestire una lista di utenti con:
 - Email
 - Data di nascita
 
+L'applicazione implementa un sistema CRUD:
+- Create user
+- Read users
+- Update user
+- Delete user
+
 **Tecnologie utilizzate**:
 - Frontend: React (Vite)
 - Backend: PHP 8.2 con PDO e MySQL
 - Database: MySQL
 - Containerizzazione: Docker & Docker Compose
+
+## Panoramica dell'architettura
+
+L'applicazione segue un'architettura a 3 livelli:
+
+Frontend (React)
+↓
+API backend (PHP)
+↓
+Database (MySQL)
 
 ---
 
